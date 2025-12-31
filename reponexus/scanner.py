@@ -4,7 +4,7 @@ Scanner module: Detects level-1 subdirectories and identifies programming langua
 
 import os
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Any, Dict, List, Set
 
 
 class RepositoryScanner:
@@ -56,7 +56,7 @@ class RepositoryScanner:
         if not self.repo_path.is_dir():
             raise ValueError(f"Repository path is not a directory: {repo_path}")
     
-    def get_level1_nodes(self) -> Dict[str, Dict[str, any]]:
+    def get_level1_nodes(self) -> Dict[str, Dict[str, Any]]:
         """
         Get level-1 subdirectories (nodes) with their metadata.
         
@@ -76,7 +76,7 @@ class RepositoryScanner:
         
         return nodes
     
-    def _analyze_directory(self, directory: Path) -> Dict[str, any]:
+    def _analyze_directory(self, directory: Path) -> Dict[str, Any]:
         """
         Analyze a directory to detect languages and count files.
         

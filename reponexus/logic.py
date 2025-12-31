@@ -14,8 +14,8 @@ class RelationshipAnalyzer:
     """
     
     # Patterns to detect in code
-    PORT_PATTERN = re.compile(r'(?:port|PORT)[\s:=]+(\d{4,5})')
-    URL_PATTERN = re.compile(r'(?:https?://)?localhost:(\d{4,5})|127\.0\.0\.1:(\d{4,5})')
+    PORT_PATTERN = re.compile(r'(?:port|PORT)[\s:=]+(\d{2,5})')
+    URL_PATTERN = re.compile(r'(?:https?://)?localhost:(\d{2,5})|127\.0\.0\.1:(\d{2,5})')
     API_URL_PATTERN = re.compile(r'["\']/(api|API)/([^"\']+)["\']')
     HTTP_METHOD_PATTERN = re.compile(r'\b(get|post|put|delete|patch|GET|POST|PUT|DELETE|PATCH)\s*\(["\']([^"\']+)["\']')
     IMPORT_PATTERN = re.compile(r'(?:from|import)\s+([a-zA-Z0-9_\.]+)')
@@ -128,7 +128,14 @@ class RelationshipAnalyzer:
                     # Find imports (potential internal dependencies)
                     for match in self.IMPORT_PATTERN.finditer(content):
                         import_name = match.group(1)
-                        imports.add(import_name)
+                        # Only create relationship if import exactly matches node name
+                        if '.' in import_name:
+                            # e.g., "from backend.models" -> check if first part matches node
+                            first_part = import_name.split('.')[0]
+                            if first_part in self.nodes and first_part != node_name:
+                                imports.add(first_part)
+                        elif import_name in self.nodes and import_name != node_name:
+                            imports.add(import_name)
             except Exception:
                 continue
         
@@ -151,9 +158,8 @@ class RelationshipAnalyzer:
         
         # Create relationships based on imports
         for import_name in imports:
-            for target_node in self.nodes.keys():
-                if target_node != node_name and target_node.lower() in import_name.lower():
-                    self.relationships.append((node_name, target_node, 'Import'))
+            if import_name in self.nodes:
+                self.relationships.append((node_name, import_name, 'Import'))
     
     def _is_text_file(self, file_path: Path) -> bool:
         """
